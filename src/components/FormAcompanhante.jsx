@@ -124,7 +124,7 @@ export default function FormAcompanhante({ acompanhante, onVoltar }) {
         {/* WhatsApp */}
         <div>
           <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-            WhatsApp <span className="text-gray-600 normal-case font-normal">(somente números, com DDI)</span>
+            WhatsApp <span className="text-gray-600 normal-case font-normal">(somente números, com DDD)</span>
           </label>
           <input type="text" required value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))}
                  className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3
@@ -144,6 +144,23 @@ export default function FormAcompanhante({ acompanhante, onVoltar }) {
             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${ativa ? 'translate-x-7' : 'translate-x-1'}`} />
           </button>
         </div>
+
+        {editando && acompanhante.criado_em && (
+          <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 flex items-center gap-2">
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-gray-500 flex-shrink-0">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+            </svg>
+            <div>
+              <p className="text-gray-500 text-[10px] uppercase tracking-wider font-bold">Cadastrada em</p>
+              <p className="text-gray-300 text-xs font-mono">
+                {new Date(acompanhante.criado_em).toLocaleString('pt-BR', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit', second: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+        )}
 
         {erro && <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">{erro}</p>}
 

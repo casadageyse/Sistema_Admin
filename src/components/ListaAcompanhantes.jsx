@@ -8,22 +8,46 @@ const REGIOES = {
 }
 
 export default function ListaAcompanhantes({ refresh, onNovo, onEditar }) {
-  const [lista, setLista]     = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filtro, setFiltro]   = useState('todas')
+  const [lista, setLista]         = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [erroLoad, setErroLoad]   = useState('')
+  const [filtro, setFiltro]       = useState('todas')
   const [deletando, setDeletando] = useState(null)
 
   useEffect(() => {
     load()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') load()
+    })
+    return () => subscription.unsubscribe()
   }, [refresh])
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase
+    setErroLoad('')
+
+    // aguarda sessão estar pronta antes de consultar
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase
       .from('acompanhantes')
       .select('*')
-      .order('criado_em', { ascending: false })
-    setLista(data ?? [])
+    if (error) {
+      console.error('Erro ao carregar:', error)
+      setErroLoad(error.message)
+      setLoading(false)
+      return
+    }
+    const sorted = (data ?? []).sort((a, b) => {
+      if (!a.criado_em) return 1
+      if (!b.criado_em) return -1
+      return new Date(b.criado_em) - new Date(a.criado_em)
+    })
+    setLista(sorted)
     setLoading(false)
   }
 
@@ -50,6 +74,12 @@ export default function ListaAcompanhantes({ refresh, onNovo, onEditar }) {
 
   return (
     <div>
+      {erroLoad && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-xs">
+          Erro ao carregar: {erroLoad}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-white font-black text-xl">Acompanhantes</h2>
@@ -112,6 +142,24 @@ export default function ListaAcompanhantes({ refresh, onNovo, onEditar }) {
                 <p className="text-white font-black text-base">{a.nome}</p>
                 <p className="text-gray-500 text-xs mb-1">{REGIOES[a.regiao]}</p>
                 <p className="text-pink-400 text-xs font-mono">{a.whatsapp}</p>
+                <div className="mt-2 flex items-center gap-1.5">
+                  <svg viewBox="0 0 32 32" fill="currentColor" className="w-3.5 h-3.5 text-[#25D366] flex-shrink-0">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M16 2C8.268 2 2 8.268 2 16c0 2.57.687 4.978 1.886 7.047L2 30l7.18-1.867A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2Zm0 25.6a11.52 11.52 0 0 1-5.882-1.608l-.421-.252-4.366 1.135 1.164-4.245-.275-.435A11.47 11.47 0 0 1 4.4 16C4.4 9.594 9.594 4.4 16 4.4S27.6 9.594 27.6 16 22.406 27.6 16 27.6Z"/>
+                    <path d="M22.29 19.12c-.33-.165-1.96-.965-2.263-1.075-.302-.11-.522-.165-.741.165-.22.33-.852 1.075-1.044 1.295-.192.22-.385.247-.715.082-1.985-.992-3.286-1.77-4.591-4.016-.347-.6.347-.557.99-1.853.11-.22.055-.412-.027-.55-.083-.138-.742-1.786-1.016-2.446-.274-.66-.55-.57-.741-.58l-.632-.012c-.22 0-.578.083-.88.412-.303.33-1.155 1.128-1.155 2.75 0 1.622 1.182 3.19 1.347 3.41.165.22 2.33 3.558 5.647 4.992 2.097.906 2.916.982 3.966.826.638-.096 1.958-.8 2.234-1.572.275-.77.275-1.43.192-1.568-.08-.137-.3-.22-.632-.385Z"/>
+                  </svg>
+                  <span className="text-[#25D366] text-xs font-bold">{a.contatos ?? 0} contato{(a.contatos ?? 0) !== 1 ? 's' : ''} via WhatsApp</span>
+                </div>
+                {a.criado_em && (
+                  <p className="text-gray-600 text-[11px] mt-1.5 flex items-center gap-1">
+                    <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current flex-shrink-0">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+                    </svg>
+                    {new Date(a.criado_em).toLocaleString('pt-BR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </p>
+                )}
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => onEditar(a)}
                           className="flex-1 bg-white/[0.06] hover:bg-white/10 text-white text-xs font-bold
