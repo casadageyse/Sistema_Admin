@@ -5,6 +5,8 @@ const REGIOES = {
   'penha-centro':       'Penha Centro',
   'penha-armacao':      'Penha Armação',
   'barra-velha-centro': 'Barra Velha Centro',
+  'navegantes': 'Navegantes',
+
 }
 
 export default function ListaAcompanhantes({ refresh, onNovo, onEditar }) {
