@@ -6,11 +6,11 @@
 CREATE TABLE IF NOT EXISTS acompanhantes (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nome          text NOT NULL,
-  regiao        text NOT NULL CHECK (regiao IN ('penha-centro','penha-armacao','barra-velha-centro')),
+  regiao        text NOT NULL CHECK (regiao IN ('penha-centro','penha-armacao','barra-velha-centro', "navegantes")),
   whatsapp      text NOT NULL,
   foto_url      text,
   ativa         boolean NOT NULL DEFAULT true,
-  criado_em     timestamptz NOT NULL DEFAULT now(),
+  criado_em     timestamptz NOT NULL DEFAULT now(),regiao text NOT NULL CHECK (regiao IN ('penha-centro','penha-armacao','barra-velha-centro','navegantes')),
   atualizado_em timestamptz NOT NULL DEFAULT now()
 );
 
